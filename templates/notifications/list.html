@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - BridgeDash</title>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .dashboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .header-content h1 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .header-content p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .notification-item.unread {
+            background: #f0f8ff;
+            border-left-color: var(--primary);
+        }
+        
+        .notification-item.read {
+            background: #f8f9fa;
+            border-left-color: #ccc;
+        }
+        
+        .notification-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+            margin-top: 5px;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+        
+        .notification-message {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .notification-time {
+            font-size: 0.8em;
+            color: #999;
+        }
+        
+        .notification-actions {
+            margin-left: 15px;
+        }
+        
+        .mark-read-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .mark-read-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .notification-badge {
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <div class="logo">🚲</div>
+                <div class="header-content">
+                    <h1>Notifications</h1>
+                    <p>Your recent updates and alerts</p>
+                </div>
+            </div>
+            
+            <div>
+                <a href="{% if request.user.role == 'customer' %}{% url 'customer_dashboard' %}{% elif request.user.role == 'driver' %}{% url 'driver_dashboard' %}{% else %}{% url 'admin_dashboard' %}{% endif %}" class="btn btn-outline">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <!-- Notifications Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: var(--dark);">
+                    🔔 Notifications
+                    {% if unread_count > 0 %}
+                    <span class="notification-badge">{{ unread_count }}</span>
+                    {% endif %}
+                </h2>
+                
+                {% if unread_count > 0 %}
+                <button 
+                    hx-post="{% url 'mark_all_notifications_read' %}" 
+                    hx-target="body"
+                    class="btn btn-primary">
+                    ✅ Mark All as Read
+                </button>
+                {% endif %}
+            </div>
+            
+            <div id="notifications-list">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                    <div class="notification-item {% if not notification.is_read %}unread{% else %}read{% endif %}" 
+                         id="notification-{{ notification.id }}">
+                        <div class="notification-icon">
+                            {% if notification.notification_type == 'delivery_request' %}📦
+                            {% elif notification.notification_type == 'delivery_accepted' %}✅
+                            {% elif notification.notification_type == 'delivery_picked_up' %}🚚
+                            {% elif notification.notification_type == 'delivery_delivered' %}🏠
+                            {% elif notification.notification_type == 'delivery_cancelled' %}❌
+                            {% elif notification.notification_type == 'message' %}💬
+                            {% else %}ℹ️{% endif %}
+                        </div>
+                        
+                        <div class="notification-content">
+                            <div class="notification-title">{{ notification.title }}</div>
+                            <div class="notification-message">{{ notification.message }}</div>
+                            <div class="notification-time">{{ notification.created_at|timesince }} ago</div>
+                        </div>
+                        
+                        <div class="notification-actions">
+                            {% if not notification.is_read %}
+                            <button 
+                                hx-post="{% url 'mark_notification_read' notification.id %}" 
+                                hx-target="#notification-{{ notification.id }}"
+                                class="mark-read-btn"
+                                title="Mark as read">
+                                ●
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">🔔</div>
+                        <h3>No notifications yet</h3>
+                        <p>You're all caught up! New notifications will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Credits Footer -->
+        <div style="text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 0.9em;">
+            <strong>🚲 BridgeDash - Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco • Contact: 0781874006<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe. +263
+        </div>
+    </div>
+
+    <script>
+        // Auto-mark as read when notification is clicked
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.notification-item')) {
+                const notificationItem = e.target.closest('.notification-item');
+                const markReadBtn = notificationItem.querySelector('.mark-read-btn');
+                
+                if (markReadBtn && !notificationItem.classList.contains('read')) {
+                    markReadBtn.click();
+                }
+            }
+        });
+        
+        // HTMX configuration
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+        
+        // Update notification item after marking as read
+        document.body.addEventListener('htmx:afterRequest', (event) => {
+            if (event.detail.requestConfig.path.includes('/notifications/mark-read/')) {
+                const notificationId = event.detail.requestConfig.path.split('/').filter(Boolean).pop();
+                const notificationItem = document.getElementById(`notification-${notificationId}`);
+                
+                if (notificationItem) {
+                    notificationItem.classList.remove('unread');
+                    notificationItem.classList.add('read');
+                    
+                    const markReadBtn = notificationItem.querySelector('.mark-read-btn');
+                    if (markReadBtn) {
+                        markReadBtn.remove();
+                    }
+                }
+            }
+            
+            // Update unread count after marking all as read
+            if (event.detail.requestConfig.path.includes('/notifications/mark-all-read/')) {
+                location.reload();
+            }
+        });
+    </script>
+</body>
+</html>

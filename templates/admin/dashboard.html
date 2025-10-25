@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - BridgeDash</title>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .header-content h1 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .header-content p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .delivery-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .delivery-meta {
+            flex: 1;
+        }
+        
+        .delivery-id {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .delivery-customer {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-accepted { background: #cce7ff; color: #004085; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .quick-actions {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .action-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        
+        .action-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .action-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+        }
+        
+        .pending-alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .alert-icon {
+            font-size: 1.5em;
+        }
+        
+        .platform-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .info-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <div class="logo">🚲</div>
+                <div class="header-content">
+                    <h1>BridgeDash Admin</h1>
+                    <p>Welcome back, {{ request.user.username }}! • Manage your delivery platform</p>
+                </div>
+            </div>
+            
+            <div class="user-menu">
+                <a href="/admin/" class="btn btn-primary" target="_blank">
+                    ⚙️ Django Admin
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">
+                    🚪 Logout
+                </a>
+            </div>
+        </div>
+        
+        <!-- Pending Approvals Alert -->
+        {% if pending_approvals > 0 %}
+        <div class="pending-alert">
+            <div class="alert-icon">⏳</div>
+            <div>
+                <strong>{{ pending_approvals }} users waiting for approval</strong>
+                <p>Review and activate new customer and driver accounts.</p>
+            </div>
+            <a href="/admin/users/user/?status__exact=pending" class="btn btn-primary" style="margin-left: auto;">
+                Review Now
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">{{ total_customers }}</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🚴</div>
+                <div class="stat-value">{{ total_drivers }}</div>
+                <div class="stat-label">Active Drivers</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value">{{ total_deliveries }}</div>
+                <div class="stat-label">Total Deliveries</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value">${{ total_commission|floatformat:2 }}</div>
+                <div class="stat-label">Total Commission</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <!-- Recent Deliveries -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📋</div>
+                    <div class="card-title">Recent Deliveries</div>
+                </div>
+                
+                {% if recent_deliveries %}
+                    {% for delivery in recent_deliveries %}
+                    <div class="delivery-item">
+                        <div class="delivery-meta">
+                            <div class="delivery-id">#{{ delivery.id }} - {{ delivery.item_description|truncatewords:5 }}</div>
+                            <div class="delivery-customer">
+                                {{ delivery.customer.user.username }} 
+                                {% if delivery.driver %}→ {{ delivery.driver.user.username }}{% endif %}
+                            </div>
+                        </div>
+                        <div class="status-badge status-{{ delivery.status }}">
+                            {{ delivery.status|title }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 40px 20px; color: #666;">
+                        <div style="font-size: 3em; margin-bottom: 15px; opacity: 0.5;">📝</div>
+                        <p>No deliveries yet</p>
+                    </div>
+                {% endif %}
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="/admin/deliveries/delivery/" class="btn btn-outline">
+                        View All Deliveries
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⚡</div>
+                    <div class="card-title">Quick Actions</div>
+                </div>
+                
+                <div class="quick-actions">
+                    <a href="/admin/users/user/?status__exact=pending" class="action-item">
+                        <div class="action-icon">👥</div>
+                        <div>
+                            <div style="font-weight: 600;">User Approvals</div>
+                            <div style="font-size: 0.9em; color: #666;">Approve new customers and drivers</div>
+                        </div>
+                    </a>
+                    
+                    <a href="/admin/deliveries/delivery/?status__exact=pending" class="action-item">
+                        <div class="action-icon">📦</div>
+                        <div>
+                            <div style="font-weight: 600;">Pending Deliveries</div>
+                            <div style="font-size: 0.9em; color: #666;">{{ pending_deliveries }} waiting for drivers</div>
+                        </div>
+                    </a>
+                    
+                    <a href="/admin/users/driver/" class="action-item">
+                        <div class="action-icon">🚴</div>
+                        <div>
+                            <div style="font-weight: 600;">Manage Drivers</div>
+                            <div style="font-size: 0.9em; color: #666;">View and manage all drivers</div>
+                        </div>
+                    </a>
+                    
+                    <a href="/admin/users/customer/" class="action-item">
+                        <div class="action-icon">👤</div>
+                        <div>
+                            <div style="font-weight: 600;">Manage Customers</div>
+                            <div style="font-size: 0.9em; color: #666;">View all customer accounts</div>
+                        </div>
+                    </a>
+                    
+                    <a href="/admin/deliveries/delivery/" class="action-item">
+                        <div class="action-icon">📊</div>
+                        <div>
+                            <div style="font-weight: 600;">Delivery Reports</div>
+                            <div style="font-size: 0.9em; color: #666;">View all delivery data</div>
+                        </div>
+                    </a>
+                    
+                    <a href="/admin/chat/chatmessage/" class="action-item">
+                        <div class="action-icon">💬</div>
+                        <div>
+                            <div style="font-weight: 600;">Chat Messages</div>
+                            <div style="font-size: 0.9em; color: #666;">Monitor customer-driver chats</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Platform Information -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">ℹ️</div>
+                <div class="card-title">Platform Information</div>
+            </div>
+            
+            <div class="platform-info">
+                <div class="info-item">
+                    <div class="info-value">{{ BRIDGEDASH_COMMISSION_RATE }}%</div>
+                    <div class="info-label">Commission Rate</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-value">${{ BRIDGEDASH_BASE_FARE }}</div>
+                    <div class="info-label">Base Fare</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-value">${{ BRIDGEDASH_PER_KM_RATE }}/km</div>
+                    <div class="info-label">Per KM Rate</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-value">{{ pending_approvals }}</div>
+                    <div class="info-label">Pending Approvals</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Status -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🟢</div>
+                <div class="card-title">System Status</div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; text-align: center;">
+                <div>
+                    <div style="font-size: 2em;">✅</div>
+                    <div style="font-weight: 600; color: var(--success);">Operational</div>
+                    <div style="font-size: 0.8em; color: #666;">Web Server</div>
+                </div>
+                <div>
+                    <div style="font-size: 2em;">✅</div>
+                    <div style="font-weight: 600; color: var(--success);">Operational</div>
+                    <div style="font-size: 0.8em; color: #666;">Database</div>
+                </div>
+                <div>
+                    <div style="font-size: 2em;">✅</div>
+                    <div style="font-weight: 600; color: var(--success);">Operational</div>
+                    <div style="font-size: 0.8em; color: #666;">Real-time Chat</div>
+                </div>
+                <div>
+                    <div style="font-size: 2em;">✅</div>
+                    <div style="font-weight: 600; color: var(--success);">Operational</div>
+                    <div style="font-size: 0.8em; color: #666;">Notifications</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Credits Footer -->
+        <div class="credits">
+            <strong>🚲 BridgeDash - Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco • Contact: 0781874006<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe. +263
+        </div>
+    </div>
+
+    <script>
+        // HTMX configuration
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+        
+        // Auto-refresh stats every 30 seconds
+        setInterval(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

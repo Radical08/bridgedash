@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Details - BridgeDash</title>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .dashboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .header-content h1 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .header-content p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: var(--dark);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: auto;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-accepted { background: #cce7ff; color: #004085; }
+        .status-picked_up { background: #d4edda; color: #155724; }
+        .status-in_transit { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .delivery-info {
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .info-value {
+            color: var(--dark);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .customer-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .customer-contact {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .progress-tracker {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .progress-step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+        
+        .step-active .step-icon {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .step-completed .step-icon {
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .step-active .step-label {
+            color: var(--primary);
+        }
+        
+        .step-completed .step-label {
+            color: var(--success);
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 25px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s ease;
+        }
+        
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .progress-tracker {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .progress-line {
+                display: none;
+            }
+            
+            .customer-contact {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <div class="logo">🚲</div>
+                <div class="header-content">
+                    <h1>Delivery #{{ delivery.id }}</h1>
+                    <p>Delivery details and customer information</p>
+                </div>
+            </div>
+            
+            <div class="status-badge status-{{ delivery.status }}">
+                {{ delivery.get_status_display }}
+            </div>
+        </div>
+        
+        <!-- Delivery Information -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">📦</div>
+                <div class="card-title">Delivery Information</div>
+            </div>
+            
+            <!-- Progress Tracker -->
+            <div class="progress-tracker">
+                <div class="progress-line">
+                    <div class="progress-fill" style="width: 
+                        {% if delivery.status == 'pending' %}0%
+                        {% elif delivery.status == 'accepted' %}25%
+                        {% elif delivery.status == 'picked_up' %}50%
+                        {% elif delivery.status == 'in_transit' %}75%
+                        {% elif delivery.status == 'delivered' %}100%
+                        {% else %}0%{% endif %}">
+                    </div>
+                </div>
+                
+                <div class="progress-step {% if delivery.status != 'cancelled' %}step-completed{% endif %}">
+                    <div class="step-icon">📝</div>
+                    <div class="step-label">Ordered</div>
+                </div>
+                
+                <div class="progress-step {% if delivery.status in ['accepted','picked_up','in_transit','delivered'] %}step-completed{% endif %}">
+                    <div class="step-icon">✅</div>
+                    <div class="step-label">Accepted</div>
+                </div>
+                
+                <div class="progress-step {% if delivery.status in ['picked_up','in_transit','delivered'] %}step-completed{% endif %}">
+                    <div class="step-icon">📦</div>
+                    <div class="step-label">Picked Up</div>
+                </div>
+                
+                <div class="progress-step {% if delivery.status in ['in_transit','delivered'] %}step-completed{% endif %}">
+                    <div class="step-icon">🚴</div>
+                    <div class="step-label">On the Way</div>
+                </div>
+                
+                <div class="progress-step {% if delivery.status == 'delivered' %}step-completed{% endif %} 
+                     {% if delivery.status == 'in_transit' %}step-active{% endif %}">
+                    <div class="step-icon">🏠</div>
+                    <div class="step-label">Delivered</div>
+                </div>
+            </div>
+            
+            <div class="delivery-info">
+                <div class="info-item">
+                    <span class="info-label">📦 Item:</span>
+                    <span class="info-value">{{ delivery.item_description }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">🏠 Pickup From:</span>
+                    <span class="info-value">{{ delivery.pickup_address }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">📍 Deliver To:</span>
+                    <span class="info-value">{{ delivery.delivery_address }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">📏 Distance:</span>
+                    <span class="info-value">{{ delivery.distance_km }} km</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">💰 Total Price:</span>
+                    <span class="info-value">${{ delivery.total_price }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">🎯 Your Earnings:</span>
+                    <span class="info-value" style="color: var(--success); font-weight: bold;">
+                        ${{ delivery.total_price|floatformat:2 }}
+                    </span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">⏰ Order Time:</span>
+                    <span class="info-value">{{ delivery.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+                
+                {% if delivery.accepted_at %}
+                <div class="info-item">
+                    <span class="info-label">✅ Accepted At:</span>
+                    <span class="info-value">{{ delivery.accepted_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% endif %}
+                
+                {% if delivery.picked_up_at %}
+                <div class="info-item">
+                    <span class="info-label">📦 Picked Up At:</span>
+                    <span class="info-value">{{ delivery.picked_up_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% endif %}
+                
+                {% if delivery.delivered_at %}
+                <div class="info-item">
+                    <span class="info-label">🏠 Delivered At:</span>
+                    <span class="info-value">{{ delivery.delivered_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="action-buttons">
+                {% if delivery.status == 'accepted' %}
+                <button 
+                    hx-post="{% url 'update_delivery_status' delivery.id %}" 
+                    hx-vals='{"status": "picked_up"}'
+                    class="btn btn-success">
+                    📦 Mark as Picked Up
+                </button>
+                {% elif delivery.status == 'picked_up' %}
+                <button 
+                    hx-post="{% url 'update_delivery_status' delivery.id %}" 
+                    hx-vals='{"status": "in_transit"}'
+                    class="btn btn-warning">
+                    🚴 Start Delivery
+                </button>
+                {% elif delivery.status == 'in_transit' %}
+                <button 
+                    hx-post="{% url 'update_delivery_status' delivery.id %}" 
+                    hx-vals='{"status": "delivered"}'
+                    class="btn btn-primary">
+                    ✅ Mark as Delivered
+                </button>
+                {% endif %}
+                
+                <a href="{% url 'chat_room' delivery.chatroom.id %}" class="btn btn-outline">
+                    💬 Chat with Customer
+                </a>
+                
+                <a href="{% url 'driver_dashboard' %}" class="btn btn-outline">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <!-- Customer Information -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">👤</div>
+                <div class="card-title">Customer Information</div>
+            </div>
+            
+            <div class="customer-info">
+                <h4 style="margin-bottom: 15px; color: var(--dark);">
+                    {{ delivery.customer.user.username }}
+                </h4>
+                
+                <div class="info-item">
+                    <span class="info-label">📞 Phone:</span>
+                    <span class="info-value">{{ delivery.customer.user.phone }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">📧 Email:</span>
+                    <span class="info-value">{{ delivery.customer.user.email }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">🏠 Delivery Address:</span>
+                    <span class="info-value">{{ delivery.delivery_address }}</span>
+                </div>
+                
+                <div class="customer-contact">
+                    <a href="tel:{{ delivery.customer.user.phone }}" class="btn btn-outline">
+                        📞 Call Customer
+                    </a>
+                    <a href="{% url 'chat_room' delivery.chatroom.id %}" class="btn btn-primary">
+                        💬 Send Message
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delivery Instructions -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">💡</div>
+                <div class="card-title">Delivery Tips</div>
+            </div>
+            
+            <div style="color: #666;">
+                <ul style="padding-left: 20px; line-height: 1.8;">
+                    <li>Confirm the item description with the customer before pickup</li>
+                    <li>Handle items carefully, especially if fragile</li>
+                    <li>Keep the customer updated on your progress</li>
+                    <li>Collect payment in cash upon delivery</li>
+                    <li>Be professional and courteous at all times</li>
+                    <li>Contact support if you encounter any issues</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Credits Footer -->
+        <div class="credits">
+            <strong>🚲 BridgeDash - Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco • Contact: 0781874006<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe. +263
+        </div>
+    </div>
+
+    <script>
+        // HTMX configuration
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+        
+        // Auto-refresh after status updates
+        document.body.addEventListener('htmx:afterRequest', function(event) {
+            if (event.detail.requestConfig.path.includes('/update-status/')) {
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

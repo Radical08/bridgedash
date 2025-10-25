@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Dashboard - BridgeDash</title>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .header-content h1 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .header-content p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: var(--dark);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-online {
+            background: var(--success);
+            color: white;
+            border: 2px solid var(--success);
+        }
+        
+        .btn-offline {
+            background: var(--danger);
+            color: white;
+            border: 2px solid var(--danger);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .online-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-online {
+            background: var(--success);
+        }
+        
+        .status-offline {
+            background: var(--danger);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .delivery-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .delivery-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .delivery-card.available {
+            border-left: 4px solid var(--success);
+        }
+        
+        .delivery-card.active {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .delivery-info {
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .info-value {
+            color: var(--dark);
+            text-align: right;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-accepted { background: #cce7ff; color: #004085; }
+        .status-picked_up { background: #d4edda; color: #155724; }
+        .status-in_transit { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <div class="logo">🚲</div>
+                <div class="header-content">
+                    <h1>BridgeDash Driver</h1>
+                    <p>Welcome, {{ request.user.username }}! • Ready to deliver in Beitbridge</p>
+                </div>
+            </div>
+            
+            <div class="user-menu">
+                <div class="online-status">
+                    <div class="status-indicator {% if driver.is_online %}status-online{% else %}status-offline{% endif %}"></div>
+                    <span>{% if driver.is_online %}Online{% else %}Offline{% endif %}</span>
+                </div>
+                <button 
+                    hx-post="{% url 'driver_online_toggle' %}" 
+                    hx-trigger="click"
+                    hx-target="body"
+                    class="btn {% if driver.is_online %}btn-offline{% else %}btn-online{% endif %}">
+                    {% if driver.is_online %}🟢 Go Offline{% else %}🔴 Go Online{% endif %}
+                </button>
+                <a href="{% url 'driver_earnings' %}" class="btn btn-outline">💰 Earnings</a>
+                <a href="{% url 'profile' %}" class="btn btn-outline">👤 Profile</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">🚪 Logout</a>
+            </div>
+        </div>
+        
+        <!-- Active Delivery Section -->
+        {% if active_delivery %}
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🚚</div>
+                <div>
+                    <div class="card-title">Active Delivery</div>
+                    <div class="status-badge status-{{ active_delivery.status }}">
+                        {{ active_delivery.get_status_display }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="delivery-info">
+                <div class="info-item">
+                    <span class="info-label">📞 Customer:</span>
+                    <span class="info-value">{{ active_delivery.customer.user.username }} • {{ active_delivery.customer.user.phone }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📦 Item:</span>
+                    <span class="info-value">{{ active_delivery.item_description }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">🏠 Pickup:</span>
+                    <span class="info-value">{{ active_delivery.pickup_address }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📍 Delivery:</span>
+                    <span class="info-value">{{ active_delivery.delivery_address }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">💰 Price:</span>
+                    <span class="info-value">${{ active_delivery.total_price }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">🎯 Your Earnings:</span>
+                    <span class="info-value">${{ active_delivery.total_price|floatformat:2 }}</span>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                {% if active_delivery.status == 'accepted' %}
+                <button 
+                    hx-post="{% url 'update_delivery_status' active_delivery.id %}" 
+                    hx-vals='{"status": "picked_up"}'
+                    class="btn btn-success">
+                    📦 Mark as Picked Up
+                </button>
+                {% elif active_delivery.status == 'picked_up' %}
+                <button 
+                    hx-post="{% url 'update_delivery_status' active_delivery.id %}" 
+                    hx-vals='{"status": "in_transit"}'
+                    class="btn btn-warning">
+                    🚴 Start Delivery
+                </button>
+                {% elif active_delivery.status == 'in_transit' %}
+                <button 
+                    hx-post="{% url 'update_delivery_status' active_delivery.id %}" 
+                    hx-vals='{"status": "delivered"}'
+                    class="btn btn-primary">
+                    ✅ Mark as Delivered
+                </button>
+                {% endif %}
+                
+                <a href="{% url 'chat_room' active_delivery.chatroom.id %}" class="btn btn-outline">
+                    💬 Chat with Customer
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <!-- No Active Delivery -->
+        <div class="card">
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <h3>No Active Deliveries</h3>
+                <p>{% if driver.is_online %}You're online and ready to accept deliveries!{% else %}Go online to receive delivery requests.{% endif %}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="dashboard-grid">
+            <!-- Available Deliveries -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🎯</div>
+                    <div class="card-title">Available Deliveries</div>
+                </div>
+                
+                <div id="available-deliveries">
+                    {% if available_deliveries and driver.is_online %}
+                        {% for delivery in available_deliveries %}
+                        <div class="delivery-card available">
+                            <div class="delivery-info">
+                                <div class="info-item">
+                                    <span class="info-label">#{{ delivery.id }}</span>
+                                    <span class="info-value">${{ delivery.total_price }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">📦 Item:</span>
+                                    <span class="info-value">{{ delivery.item_description|truncatewords:8 }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">📏 Distance:</span>
+                                    <span class="info-value">{{ delivery.distance_km }} km</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">⏰ Created:</span>
+                                    <span class="info-value">{{ delivery.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button 
+                                    hx-post="{% url 'accept_delivery' delivery.id %}" 
+                                    hx-target="#available-deliveries"
+                                    hx-confirm="Accept this delivery for ${{ delivery.total_price }}?"
+                                    class="btn btn-success">
+                                    ✅ Accept Delivery
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state" style="padding: 20px;">
+                            <div class="empty-icon">{% if driver.is_online %}📭{% else %}🔴{% endif %}</div>
+                            <p>
+                                {% if not driver.is_online %}
+                                    Go online to see available deliveries
+                                {% else %}
+                                    No deliveries available right now
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Driver Stats & Recent -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">Your Stats</div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${{ today_earnings|floatformat:2 }}</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${{ driver.total_earnings|floatformat:2 }}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${{ driver.commission_owed|floatformat:2 }}</div>
+                        <div class="stat-label">Commission Due</div>
+                    </div>
+                </div>
+                
+                <!-- Recent Deliveries -->
+                <div style="margin-top: 25px;">
+                    <h4 style="margin-bottom: 15px; color: var(--dark);">Recent Deliveries</h4>
+                    {% if recent_deliveries %}
+                        {% for delivery in recent_deliveries %}
+                        <div class="delivery-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 8px; background: #f8f9fa; border-radius: 8px;">
+                            <div>
+                                <div style="font-weight: 600;">#{{ delivery.id }}</div>
+                                <div style="font-size: 0.9em; color: #666;">{{ delivery.created_at|date:"M d" }}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 600;">${{ delivery.total_price }}</div>
+                                <div class="status-badge status-{{ delivery.status }}" style="font-size: 0.7em;">
+                                    {{ delivery.status|title }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align: center; padding: 20px; color: #666;">
+                            <div>📝</div>
+                            <p>No deliveries yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="{% url 'driver_earnings' %}" class="btn btn-outline">
+                        📈 View Detailed Earnings
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Location Tracking -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">📍</div>
+                <div class="card-title">Location Tracking</div>
+            </div>
+            
+            <div style="text-align: center; padding: 20px;">
+                <p style="margin-bottom: 15px; color: #666;">
+                    Location tracking is {% if active_delivery %}active{% else %}inactive{% endif %}
+                </p>
+                <button onclick="startLocationTracking()" class="btn btn-primary">
+                    📍 {% if active_delivery %}Update Location{% else %}Start Tracking{% endif %}
+                </button>
+            </div>
+        </div>
+        
+        <!-- Credits Footer -->
+        <div style="text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 0.9em;">
+            <strong>🚲 BridgeDash - Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco • Contact: 0781874006<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe. +263
+        </div>
+    </div>
+
+    <script>
+        // Online/Offline toggle
+        document.addEventListener('htmx:afterRequest', function(event) {
+            if (event.detail.requestConfig.path === "{% url 'driver_online_toggle' %}") {
+                location.reload(); // Reload to update the interface
+            }
+        });
+        
+        // Auto-refresh available deliveries
+        function refreshDeliveries() {
+            htmx.ajax('GET', window.location.href, '#available-deliveries');
+        }
+        
+        // Refresh every 15 seconds if online
+        {% if driver.is_online %}
+        setInterval(refreshDeliveries, 15000);
+        {% endif %}
+        
+        // Location tracking
+        let locationWatchId = null;
+        
+        function startLocationTracking() {
+            if (navigator.geolocation) {
+                if (locationWatchId) {
+                    navigator.geolocation.clearWatch(locationWatchId);
+                }
+                
+                locationWatchId = navigator.geolocation.watchPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Send to server
+                        htmx.ajax('POST', "{% url 'update_driver_location' %}", {
+                            values: {lat: lat, lng: lng},
+                            target: 'body'
+                        });
+                    },
+                    function(error) {
+                        console.error('Geolocation error:', error);
+                        alert('Unable to get your location. Please check location permissions.');
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+                
+                alert('📍 Location tracking started! Your location will be updated automatically.');
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+        
+        // Start location tracking if has active delivery
+        {% if active_delivery %}
+        document.addEventListener('DOMContentLoaded', function() {
+            startLocationTracking();
+        });
+        {% endif %}
+        
+        // HTMX configuration
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
+</body>
+</html>

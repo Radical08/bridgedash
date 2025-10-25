@@ -1,0 +1,12 @@
+{
+  "name": "bridgedash",
+  "version": "1.0.0",
+  "description": "Beitbridge Bike Delivery App",
+  "scripts": {
+    "dev": "python manage.py runserver",
+    "build": "python manage.py collectstatic --noinput"
+  },
+  "dependencies": {
+    "htmx.org": "^1.9.4"
+  }
+}

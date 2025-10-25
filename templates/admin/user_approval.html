@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Approval - BridgeDash Admin</title>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .header-content h1 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .header-content p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .user-list {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .user-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .user-card.approved {
+            border-left-color: var(--success);
+        }
+        
+        .user-card.rejected {
+            border-left-color: var(--danger);
+        }
+        
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .user-info h3 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .user-meta {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .user-role {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .role-customer { background: #cce7ff; color: #004085; }
+        .role-driver { background: #d4edda; color: #155724; }
+        .role-admin { background: #f8d7da; color: #721c24; }
+        
+        .user-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .detail-item {
+            margin-bottom: 8px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .detail-value {
+            color: var(--dark);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .user-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <div class="logo">🚲</div>
+                <div class="header-content">
+                    <h1>User Approval Management</h1>
+                    <p>Review and approve new user registrations</p>
+                </div>
+            </div>
+            
+            <div>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-outline">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number">{{ pending_users.count }}</div>
+                <div class="stat-label">Pending Approval</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ total_customers }}</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ total_drivers }}</div>
+                <div class="stat-label">Total Drivers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ approved_today }}</div>
+                <div class="stat-label">Approved Today</div>
+            </div>
+        </div>
+        
+        <!-- Pending Users -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">⏳</div>
+                <div class="card-title">Pending User Approvals</div>
+            </div>
+            
+            <div class="user-list">
+                {% if pending_users %}
+                    {% for user in pending_users %}
+                    <div class="user-card">
+                        <div class="user-header">
+                            <div class="user-info">
+                                <h3>{{ user.username }}</h3>
+                                <div class="user-meta">
+                                    {{ user.email }} • {{ user.phone }} • Registered {{ user.created_at|timesince }} ago
+                                </div>
+                            </div>
+                            <div class="user-role role-{{ user.role }}">
+                                {{ user.get_role_display }}
+                            </div>
+                        </div>
+                        
+                        <div class="user-details">
+                            <div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Username</div>
+                                    <div class="detail-value">{{ user.username }}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Email</div>
+                                    <div class="detail-value">{{ user.email }}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Phone</div>
+                                    <div class="detail-value">{{ user.phone }}</div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                {% if user.role == 'customer' and user.customer %}
+                                <div class="detail-item">
+                                    <div class="detail-label">Address</div>
+                                    <div class="detail-value">{{ user.customer.address }}</div>
+                                </div>
+                                {% elif user.role == 'driver' and user.driver %}
+                                <div class="detail-item">
+                                    <div class="detail-label">Bike Registration</div>
+                                    <div class="detail-value">{{ user.driver.bike_registration }}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">ID Number</div>
+                                    <div class="detail-value">{{ user.driver.id_number }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Registration Date</div>
+                                    <div class="detail-value">{{ user.created_at|date:"M d, Y H:i" }}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Status</div>
+                                    <div class="detail-value">{{ user.get_status_display }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <form method="post" action="{% url 'admin_approve_user' user.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    ✅ Approve User
+                                </button>
+                            </form>
+                            
+                            <form method="post" action="{% url 'admin_reject_user' user.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger" 
+                                        onclick="return confirm('Are you sure you want to reject this user? This action cannot be undone.')">
+                                    ❌ Reject User
+                                </button>
+                            </form>
+                            
+                            <a href="/admin/users/user/{{ user.id }}/change/" class="btn btn-outline" target="_blank">
+                                🔍 View Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">✅</div>
+                        <h3>No Pending Approvals</h3>
+                        <p>All user registrations have been reviewed and processed.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Approval Guidelines -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">📋</div>
+                <div class="card-title">Approval Guidelines</div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="margin-bottom: 10px; color: var(--success);">✅ Approve When:</h4>
+                    <ul style="color: #666; line-height: 1.6;">
+                        <li>Valid phone number format</li>
+                        <li>Complete profile information</li>
+                        <li>Real name and contact details</li>
+                        <li>For drivers: Valid bike registration and ID</li>
+                        <li>Local Beitbridge area</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="margin-bottom: 10px; color: var(--danger);">❌ Reject When:</h4>
+                    <ul style="color: #666; line-height: 1.6;">
+                        <li>Fake or incomplete information</li>
+                        <li>Invalid phone number</li>
+                        <li>Suspicious email addresses</li>
+                        <li>For drivers: Invalid documents</li>
+                        <li>Previous violations or bans</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Credits Footer -->
+        <div class="credits">
+            <strong>🚲 BridgeDash - Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco • Contact: 0781874006<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe. +263
+        </div>
+    </div>
+
+    <script>
+        // HTMX configuration
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+        
+        // Auto-refresh every 30 seconds to check for new registrations
+        setInterval(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

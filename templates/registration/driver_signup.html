@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Sign Up - BridgeDash</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .signup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .signup-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .signup-header h1 {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .signup-header p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        
+        .signup-form {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+        
+        .error-list {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .error-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #4facfe;
+            text-decoration: none;
+            font-weight: 500;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .credits {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #e1e5e9;
+        }
+        
+        .form-help {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .driver-info {
+            background: #f0f8ff;
+            border: 1px solid #cce7ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .driver-info h3 {
+            color: #004085;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .driver-info ul {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-header">
+            <div class="logo">🚲</div>
+            <h1>Driver Sign Up</h1>
+            <p>Start earning with BridgeDash in Beitbridge</p>
+        </div>
+        
+        <div class="signup-form">
+            <div class="driver-info">
+                <h3>🚴 Driver Requirements</h3>
+                <ul>
+                    <li>Valid bike registration documents</li>
+                    <li>Government-issued ID</li>
+                    <li>Active phone number</li>
+                    <li>Knowledge of Beitbridge areas</li>
+                </ul>
+            </div>
+            
+            {% if form.errors %}
+            <div class="error-list">
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="id_username">👤 Username</label>
+                    {{ form.username }}
+                    <div class="form-help">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_email">📧 Email</label>
+                    {{ form.email }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_phone">📞 Phone Number</label>
+                    {{ form.phone }}
+                    <div class="form-help">Format: +263 XXX XXX XXX</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_bike_registration">🚲 Bike Registration</label>
+                    {{ form.bike_registration }}
+                    <div class="form-help">Your bike's registration number</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_id_number">🆔 ID Number</label>
+                    {{ form.id_number }}
+                    <div class="form-help">Your government-issued ID number</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password1">🔒 Password</label>
+                    {{ form.password1 }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password2">🔒 Confirm Password</label>
+                    {{ form.password2 }}
+                </div>
+                
+                <button type="submit" class="btn">🚀 Apply as Driver</button>
+            </form>
+            
+            <a href="{% url 'signup' %}" class="back-link">
+                ← Back to Account Selection
+            </a>
+        </div>
+        
+        <div class="credits">
+            <strong>Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco<br>
+            Contact: 0781874006 | designerw912@gmail.com<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe.
+        </div>
+    </div>
+</body>
+</html>

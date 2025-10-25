@@ -1,0 +1,53 @@
+<footer style="background: #343a40; color: white; padding: 40px 0; margin-top: 50px;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 30px;">
+            <div>
+                <h3 style="color: #4facfe; margin-bottom: 15px;">🚲 BridgeDash</h3>
+                <p style="opacity: 0.8; line-height: 1.6;">
+                    Your instant bike delivery solution in Beitbridge. 
+                    Fast, reliable, and affordable delivery services for the community.
+                </p>
+            </div>
+            
+            <div>
+                <h4 style="color: #4facfe; margin-bottom: 15px;">Quick Links</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="{% url 'home' %}" style="color: white; text-decoration: none; opacity: 0.8; transition: opacity 0.3s ease;">Home</a>
+                    <a href="{% url 'login' %}" style="color: white; text-decoration: none; opacity: 0.8; transition: opacity 0.3s ease;">Login</a>
+                    <a href="{% url 'signup' %}" style="color: white; text-decoration: none; opacity: 0.8; transition: opacity 0.3s ease;">Sign Up</a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" style="color: white; text-decoration: none; opacity: 0.8; transition: opacity 0.3s ease;">Dashboard</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="color: #4facfe; margin-bottom: 15px;">Contact Info</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px; opacity: 0.8;">
+                    <div>📞 0781874006</div>
+                    <div>📧 designerw912@gmail.com</div>
+                    <div>📍 Beitbridge, Zimbabwe</div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="color: #4facfe; margin-bottom: 15px;">Services</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px; opacity: 0.8;">
+                    <div>📦 Grocery Delivery</div>
+                    <div>📄 Document Delivery</div>
+                    <div>🍕 Food Pickup</div>
+                    <div>🚚 Package Delivery</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; text-align: center;">
+            <div style="opacity: 0.7; margin-bottom: 10px;">
+                <strong>Developed by Radical Tech Team</strong> • Team Leader: Bronco
+            </div>
+            <div style="opacity: 0.5; font-size: 0.9em;">
+                &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe. +263
+            </div>
+        </div>
+    </div>
+</footer>

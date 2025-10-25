@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - BridgeDash</title>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .header-content h1 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .header-content p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: auto;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-accepted { background: #cce7ff; color: #004085; }
+        .status-picked_up { background: #d4edda; color: #155724; }
+        .status-in_transit { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .delivery-info {
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .info-value {
+            color: var(--dark);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .recent-deliveries {
+            margin-top: 20px;
+        }
+        
+        .delivery-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .delivery-meta {
+            flex: 1;
+        }
+        
+        .delivery-id {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .delivery-date {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .user-menu {
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <div class="logo">🚲</div>
+                <div class="header-content">
+                    <h1>BridgeDash Customer</h1>
+                    <p>Welcome back, {{ request.user.username }}! • Beitbridge Delivery Service</p>
+                </div>
+            </div>
+            
+            <div class="user-menu">
+                <a href="{% url 'profile' %}" class="btn btn-outline">👤 Profile</a>
+                <a href="{% url 'notifications_list' %}" class="btn btn-outline">🔔 Notifications</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">🚪 Logout</a>
+            </div>
+        </div>
+        
+        <!-- Active Delivery Section -->
+        {% if active_delivery %}
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🚚</div>
+                <div>
+                    <div class="card-title">Active Delivery</div>
+                    <div class="status-badge status-{{ active_delivery.status }}">
+                        {{ active_delivery.get_status_display }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="delivery-info">
+                <div class="info-item">
+                    <span class="info-label">📦 Item:</span>
+                    <span class="info-value">{{ active_delivery.item_description }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">🏠 From:</span>
+                    <span class="info-value">{{ active_delivery.pickup_address }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📍 To:</span>
+                    <span class="info-value">{{ active_delivery.delivery_address }}</span>
+                </div>
+                {% if active_delivery.driver %}
+                <div class="info-item">
+                    <span class="info-label">🚴 Driver:</span>
+                    <span class="info-value">{{ active_delivery.driver.user.username }} • {{ active_delivery.driver.user.phone }}</span>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <span class="info-label">💰 Price:</span>
+                    <span class="info-value">${{ active_delivery.total_price }}</span>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{% url 'active_delivery' active_delivery.id %}" class="btn btn-primary">
+                    📱 Track Delivery
+                </a>
+                {% if active_delivery.status in ['pending','accepted'] %}
+                <a href="{% url 'cancel_delivery' active_delivery.id %}" class="btn btn-danger">
+                    ❌ Cancel
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <!-- No Active Delivery -->
+        <div class="card">
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <h3>No Active Deliveries</h3>
+                <p>Ready to get something delivered around Beitbridge?</p>
+                <a href="{% url 'new_delivery' %}" class="btn btn-primary" style="margin-top: 15px;">
+                    🚀 Request New Delivery
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Recent Deliveries & Quick Actions -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📋</div>
+                    <div class="card-title">Recent Deliveries</div>
+                </div>
+                
+                <div class="recent-deliveries">
+                    {% if recent_deliveries %}
+                        {% for delivery in recent_deliveries %}
+                        <div class="delivery-item">
+                            <div class="delivery-meta">
+                                <div class="delivery-id">#{{ delivery.id }} - {{ delivery.item_description|truncatewords:5 }}</div>
+                                <div class="delivery-date">{{ delivery.created_at|date:"M d, Y H:i" }}</div>
+                            </div>
+                            <div class="status-badge status-{{ delivery.status }}">
+                                {{ delivery.status|title }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state" style="padding: 20px;">
+                            <div class="empty-icon">📝</div>
+                            <p>No delivery history yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if recent_deliveries %}
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="{% url 'order_history' %}" class="btn btn-outline">
+                        📊 View Full History
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⚡</div>
+                    <div class="card-title">Quick Actions</div>
+                </div>
+                
+                <div style="display: grid; gap: 10px;">
+                    <a href="{% url 'new_delivery' %}" class="btn btn-primary" style="justify-content: center;">
+                        🚀 New Delivery Request
+                    </a>
+                    <a href="{% url 'order_history' %}" class="btn btn-outline" style="justify-content: center;">
+                        📊 Delivery History
+                    </a>
+                    <a href="{% url 'profile' %}" class="btn btn-outline" style="justify-content: center;">
+                        👤 Update Profile
+                    </a>
+                </div>
+                
+                <!-- Stats -->
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">{{ recent_deliveries.count }}</div>
+                            <div class="stat-label">Total Orders</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ recent_deliveries|length }}</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Credits Footer -->
+        <div style="text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 0.9em;">
+            <strong>🚲 BridgeDash - Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco • Contact: 0781874006<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe. +263
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh active delivery status
+        {% if active_delivery %}
+        function refreshDeliveryStatus() {
+            fetch("{% url 'get_delivery_status' active_delivery.id %}")
+                .then(response => response.json())
+                .then(data => {
+                    // Update status badge
+                    const badge = document.querySelector('.status-badge');
+                    if (badge) {
+                        badge.textContent = data.status_display;
+                        badge.className = `status-badge status-${data.status}`;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        // Refresh every 10 seconds
+        setInterval(refreshDeliveryStatus, 10000);
+        {% endif %}
+        
+        // HTMX configuration
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel Delivery - BridgeDash</title>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .dashboard-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .header-content h1 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .header-content p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .warning-alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .warning-icon {
+            font-size: 1.5em;
+        }
+        
+        .delivery-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .info-value {
+            color: var(--dark);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .cancellation-fee {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <div class="logo">🚲</div>
+                <div class="header-content">
+                    <h1>Cancel Delivery</h1>
+                    <p>Delivery #{{ delivery.id }}</p>
+                </div>
+            </div>
+            
+            <div>
+                <a href="{% url 'active_delivery' delivery.id %}" class="btn btn-outline">
+                    ← Back to Delivery
+                </a>
+            </div>
+        </div>
+        
+        <!-- Warning Alert -->
+        <div class="warning-alert">
+            <div class="warning-icon">⚠️</div>
+            <div>
+                <strong>Cancellation Policy</strong>
+                <p>
+                    {% if delivery.status == 'pending' %}
+                    Free cancellation - No charges will apply.
+                    {% else %}
+                    50% cancellation fee applies since driver has already accepted your delivery.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Delivery Information -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">📦</div>
+                <div class="card-title">Delivery Details</div>
+            </div>
+            
+            <div class="delivery-info">
+                <div class="info-item">
+                    <span class="info-label">Item:</span>
+                    <span class="info-value">{{ delivery.item_description }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Pickup:</span>
+                    <span class="info-value">{{ delivery.pickup_address }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Delivery:</span>
+                    <span class="info-value">{{ delivery.delivery_address }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Price:</span>
+                    <span class="info-value">${{ delivery.total_price }}</span>
+                </div>
+                {% if delivery.driver %}
+                <div class="info-item">
+                    <span class="info-label">Driver:</span>
+                    <span class="info-value">{{ delivery.driver.user.username }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if delivery.status == 'accepted' %}
+            <div class="cancellation-fee">
+                💰 Cancellation Fee: ${{ delivery.total_price|floatformat:2 }}
+            </div>
+            {% endif %}
+            
+            <!-- Cancellation Form -->
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="id_reason">❓ Reason for Cancellation</label>
+                    {{ form.reason }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_note">📝 Additional Notes (Optional)</label>
+                    {{ form.note }}
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-danger">
+                        ❌ Confirm Cancellation
+                    </button>
+                    <a href="{% url 'active_delivery' delivery.id %}" class="btn btn-outline">
+                        ← Go Back
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Important Notes -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">ℹ️</div>
+                <div class="card-title">Important Information</div>
+            </div>
+            
+            <div style="color: #666; line-height: 1.6;">
+                <p><strong>Before cancelling, please note:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Cancellations cannot be undone</li>
+                    <li>Driver will be notified immediately</li>
+                    <li>Any cancellation fees are final</li>
+                    <li>Repeated cancellations may affect your account status</li>
+                    <li>Contact support if you need assistance</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Credits Footer -->
+        <div class="credits">
+            <strong>🚲 BridgeDash - Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco • Contact: 0781874006<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe. +263
+        </div>
+    </div>
+
+    <script>
+        // HTMX configuration
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+        
+        // Confirm cancellation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const reason = document.getElementById('id_reason').value;
+            if (!reason) {
+                e.preventDefault();
+                alert('Please select a reason for cancellation.');
+                return;
+            }
+            
+            const message = 'Are you sure you want to cancel this delivery?' + 
+                           '{% if delivery.status == "accepted" %} A cancellation fee will apply.{% endif %}';
+            
+            if (!confirm(message)) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

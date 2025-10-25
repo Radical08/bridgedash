@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Approval - BridgeDash</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .approval-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .approval-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px 20px;
+        }
+        
+        .logo {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .approval-header h1 {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .approval-content {
+            padding: 40px 30px;
+        }
+        
+        .status-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+        
+        .approval-message {
+            margin-bottom: 25px;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .next-steps {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .next-steps h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .next-steps ul {
+            color: #666;
+            line-height: 1.6;
+            padding-left: 20px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+        
+        .contact-info {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5e9;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .credits {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #e1e5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="approval-container">
+        <div class="approval-header">
+            <div class="logo">🚲</div>
+            <h1>BridgeDash</h1>
+            <p>Your account is pending approval</p>
+        </div>
+        
+        <div class="approval-content">
+            <div class="status-icon">⏳</div>
+            
+            <div class="approval-message">
+                <h2>Thank you for signing up!</h2>
+                <p>Your account is currently being reviewed by our admin team. This process usually takes less than 24 hours.</p>
+            </div>
+            
+            <div class="next-steps">
+                <h3>📋 What happens next?</h3>
+                <ul>
+                    <li>Admin will review your registration details</li>
+                    <li>You'll receive approval via email/SMS</li>
+                    <li>Once approved, you can login and start using BridgeDash</li>
+                    <li>For drivers: Additional verification may be required</li>
+                </ul>
+            </div>
+            
+            <a href="{% url 'login' %}" class="btn">
+                🔄 Check Approval Status
+            </a>
+            
+            <div class="contact-info">
+                <strong>Need help?</strong><br>
+                Contact: 0781874006 | designerw912@gmail.com
+            </div>
+        </div>
+        
+        <div class="credits">
+            <strong>Developed by Radical Tech Team</strong><br>
+            Team Leader: Bronco<br>
+            &copy; 2024 BridgeDash. For Beitbridge, Zimbabwe.
+        </div>
+    </div>
+</body>
+</html>

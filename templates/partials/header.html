@@ -1,0 +1,33 @@
+<header style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px 0;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 2em;">🚲</div>
+            <div>
+                <h1 style="margin: 0; font-size: 1.5em;">BridgeDash</h1>
+                <p style="margin: 0; opacity: 0.9; font-size: 0.9em;">Instant Bike Delivery in Beitbridge</p>
+            </div>
+        </div>
+        
+        <nav style="display: flex; gap: 15px; align-items: center;">
+            {% if user.is_authenticated %}
+                <span style="opacity: 0.9;">Welcome, {{ user.username }}!</span>
+                <a href="{% url 'dashboard' %}" style="color: white; text-decoration: none; padding: 8px 15px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; transition: all 0.3s ease;">
+                    🏠 Dashboard
+                </a>
+                <a href="{% url 'profile' %}" style="color: white; text-decoration: none; padding: 8px 15px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; transition: all 0.3s ease;">
+                    👤 Profile
+                </a>
+                <a href="{% url 'logout' %}" style="color: white; text-decoration: none; padding: 8px 15px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; transition: all 0.3s ease;">
+                    🚪 Logout
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" style="color: white; text-decoration: none; padding: 8px 15px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; transition: all 0.3s ease;">
+                    🔑 Login
+                </a>
+                <a href="{% url 'signup' %}" style="color: white; text-decoration: none; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;">
+                    🚀 Sign Up
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
