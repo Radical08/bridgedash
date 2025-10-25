@@ -1,8 +1,12 @@
 [phases.setup]
-cmds = ["pip install -r requirements.txt"]
+cmds = [
+    "pip install -r requirements.txt"
+]
 
 [phases.build]
-cmds = ["python manage.py collectstatic --noinput"]
+cmds = [
+    "python manage.py collectstatic --noinput"
+]
 
 [start]
-cmd = "python manage.py migrate && daphne -b 0.0.0.0 -p $PORT bridgedash.asgi:application"
+cmd = "python manage.py migrate && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p $PORT bridgedash.asgi:application"
