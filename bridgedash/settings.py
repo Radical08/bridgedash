@@ -153,3 +153,62 @@ if 'RAILWAY_ENVIRONMENT' in os.environ:
     CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
+
+# Production settings
+import os
+if os.environ.get('RAILWAY_ENV') or not DEBUG:
+    # Security settings
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # Static files
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    
+    # Database
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    
+    # Redis for Railway
+    redis_url = os.environ.get('REDIS_URL')
+    if redis_url:
+        CHANNEL_LAYERS['default']['CONFIG']['hosts'] = [redis_url]
+        CELERY_BROKER_URL = redis_url
+        CELERY_RESULT_BACKEND = redis_url 
+# Docker/Production Settings
+import os
+
+# Check if we're in a Docker/Production environment
+if os.environ.get('DOCKER_ENV') or os.environ.get('RAILWAY_ENV') or not DEBUG:
+    # Security settings
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # Static files
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    
+    # Database - use PostgreSQL in production
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True
+    )
+    
+    # Redis configuration for production
+    redis_url = os.environ.get('REDIS_URL', 'redis://redis:6379')
+    CHANNEL_LAYERS['default']['CONFIG']['hosts'] = [redis_url]
+    CELERY_BROKER_URL = redis_url
+    CELERY_RESULT_BACKEND = redis_url
+    
+    # Allowed hosts
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '.railway.app',
+        '.onrender.com',
+        '0.0.0.0',
+    ]
