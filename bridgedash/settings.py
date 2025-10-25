@@ -131,3 +131,25 @@ EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.conso
 BRIDGEDASH_COMMISSION_RATE = float(config('BRIDGEDASH_COMMISSION_RATE', default=0.15))
 BRIDGEDASH_BASE_FARE = float(config('BRIDGEDASH_BASE_FARE', default=5.00))
 BRIDGEDASH_PER_KM_RATE = float(config('BRIDGEDASH_PER_KM_RATE', default=2.00))
+
+# Railway Production Settings
+import dj_database_url
+
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+
+if 'RAILWAY_STATIC_URL' in os.environ:
+    STATIC_URL = os.environ.get('RAILWAY_STATIC_URL')
+
+if 'RAILWAY_ENVIRONMENT' in os.environ:
+    DEBUG = False
+    ALLOWED_HOSTS = ['.railway.app', 'localhost', '127.0.0.1']
+    CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
